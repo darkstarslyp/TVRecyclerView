@@ -4,17 +4,14 @@ import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.ContentFrameLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
+import li.demon.com.tvrecyclerview.widget.TVGridLayoutManager;
 import li.demon.com.tvrecyclerview.widget.TVLinearLayoutManager;
 import li.demon.com.tvrecyclerview.widget.TVRecyclerView;
 
@@ -34,9 +31,10 @@ public class MainActivity extends AppCompatActivity {
 
 
         InnerAdapter adapter = new InnerAdapter(this);
-        TVLinearLayoutManager layoutManager = new TVLinearLayoutManager(this, LinearLayoutManager.VERTICAL,false);
-        layoutManager.setRecyclerView(tvRecyclerView);
+        TVGridLayoutManager layoutManager = new TVGridLayoutManager(this,3,LinearLayoutManager.VERTICAL,false);
+        layoutManager.setTVRecyclerView(tvRecyclerView);
         layoutManager.showFocusViewNextItem(true);
+        layoutManager.setShowNextItemScale(0.5f);
         tvRecyclerView.setLayoutManager(layoutManager);
         tvRecyclerView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
@@ -66,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
             RecyclerView.LayoutParams rvItemParam = (RecyclerView.LayoutParams)holder.itemView.getLayoutParams();
             if(rvItemParam!=null){
-                rvItemParam.width = ScreenUtils.getScreenWidth(context);
+                rvItemParam.width = ScreenUtils.getScreenWidth(context)/3;
                 rvItemParam.topMargin = 20;
                 rvItemParam.bottomMargin = 20;
                 rvItemParam.leftMargin = 20;
@@ -92,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            return 50;
+            return 100;
         }
     }
 }

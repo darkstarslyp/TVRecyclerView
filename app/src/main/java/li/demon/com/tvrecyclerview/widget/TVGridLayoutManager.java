@@ -3,31 +3,39 @@ package li.demon.com.tvrecyclerview.widget;
 import android.content.Context;
 import android.graphics.Rect;
 import android.support.v4.view.ViewCompat;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.SparseArray;
 import android.view.View;
 
 /**
- * Created by demon on 16/12/12.
+ * Created by demon on 16/12/13.
  */
 
-public class TVLinearLayoutManager extends LinearLayoutManager {
+public class TVGridLayoutManager extends GridLayoutManager {
+
+
+    private int DEFAULT_MIN_SPACE = 30;
+    private float DEFAULT_SHOW_NEXT_ITEM_SCALE = 0.2f;
+
     private RecyclerView mRecyclerView;
     private boolean bShowFocusViewNextItem;
 
-    public TVLinearLayoutManager(Context context) {
-        super(context);
-    }
 
-    public TVLinearLayoutManager(Context context, int orientation, boolean reverseLayout) {
-        super(context, orientation, reverseLayout);
-    }
+    private float mShowNextItemScale = DEFAULT_SHOW_NEXT_ITEM_SCALE;
 
-    public TVLinearLayoutManager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public TVGridLayoutManager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
+
+    public TVGridLayoutManager(Context context, int spanCount) {
+        super(context, spanCount);
+    }
+
+    public TVGridLayoutManager(Context context, int spanCount, int orientation, boolean reverseLayout) {
+        super(context, spanCount, orientation, reverseLayout);
+    }
+
 
     public void setTVRecyclerView(RecyclerView recyclerView) {
         mRecyclerView = recyclerView;
@@ -37,6 +45,19 @@ public class TVLinearLayoutManager extends LinearLayoutManager {
     public void showFocusViewNextItem(boolean showFocusViewNextItem) {
         bShowFocusViewNextItem = showFocusViewNextItem;
     }
+
+    public void setShowNextItemScale(float scale){
+          if(scale>1){
+              scale = 1;
+          }
+        if(scale<0){
+            scale = DEFAULT_SHOW_NEXT_ITEM_SCALE;
+        }
+        this.mShowNextItemScale = scale;
+    }
+
+
+
 
 
     /**
@@ -83,8 +104,8 @@ public class TVLinearLayoutManager extends LinearLayoutManager {
         int dy = offScreenTop != 0 ? offScreenTop
                 : Math.min(childTop - parentTop, offScreenBottom);
 
-        ////方案一：保证该算法实现获得焦点的View 的margin值生效，同时可以显示出下一个child view 的部分空间
-        if (mRecyclerView != null&&(dy!=0||dx!=0)) {
+        ////方案一：保证该算法实现获得焦点的View 的margin值生效，同时可以显示出下一个child view 的部分空间,利用系统寻找焦点的方法
+        if (mRecyclerView != null && (dy != 0 || dx != 0)) {
             View focusView = mRecyclerView.findFocus();
             if (focusView != null) {
                 View itemView = findContainingItemView(focusView);
@@ -96,56 +117,45 @@ public class TVLinearLayoutManager extends LinearLayoutManager {
                     if (bShowFocusViewNextItem && viewHolder != null) { //是否将焦点以后的某个child view显示一部分
 
                         int focusPosition = mRecyclerView.getChildAdapterPosition(itemView);
-                        int nextItemPos = RecyclerView.NO_POSITION;
+
+                        int nextVerticalItemPos = RecyclerView.NO_POSITION;
                         if (RecyclerView.NO_POSITION != focusPosition) {
                             if (focusPosition > 0 && focusPosition < (getItemCount() - 1)) {
 
-                                RecyclerView.LayoutParams itemParams = null ;
+                                RecyclerView.LayoutParams itemParams = null;
                                 int margin = 0;
                                 int itemSpace = 0;
 
-                                if (dx != 0) {
-                                    boolean toLeft = true;
-                                    if (dx > 0) {  //to right
-                                        toLeft = false;
-                                        nextItemPos = focusPosition +1;
-                                    } else {   //to left
-                                        nextItemPos = focusPosition -1;
-                                    }
-                                    RecyclerView.ViewHolder nextViewholder = mRecyclerView.findViewHolderForAdapterPosition(nextItemPos);
-                                    if(nextViewholder!=null){
-                                        itemParams = (RecyclerView.LayoutParams)nextViewholder.itemView.getLayoutParams();
-                                        if(toLeft){
-                                            margin = itemParams==null?0:itemParams.leftMargin;
-                                        }else{
-                                            margin = itemParams==null?0:itemParams.rightMargin;
-                                        }
-                                        itemSpace = nextViewholder.itemView.getWidth();
-                                    }
-                                }
-
                                 if (dy != 0) {
                                     boolean toBottom = true;
+                                    View nextVerticalFocusView ;
+                                    View nextVerticalItemView = null;
+
                                     if (dy > 0) {  //to bottom
-                                        nextItemPos = focusPosition +1;
+                                        nextVerticalFocusView = mRecyclerView.focusSearch(focusView,View.FOCUS_DOWN);
                                     } else {   //to up
+                                        nextVerticalFocusView = mRecyclerView.focusSearch(focusView,View.FOCUS_UP);
                                         toBottom = false;
-                                        nextItemPos = focusPosition -1;
                                     }
-                                    RecyclerView.ViewHolder nextViewholder = mRecyclerView.findViewHolderForAdapterPosition(nextItemPos);
-                                    if(nextViewholder!=null){
-                                        itemParams = (RecyclerView.LayoutParams)nextViewholder.itemView.getLayoutParams();
-                                        if(toBottom){
-                                            margin = itemParams==null?0:itemParams.bottomMargin;
-                                        }else{
-                                            margin = itemParams==null?0:itemParams.topMargin;
+                                    if(nextVerticalFocusView!=null){
+                                        nextVerticalItemView = findContainingItemView(nextVerticalFocusView);
+                                    }
+                                    if(nextVerticalItemView!=null){
+                                        nextVerticalItemPos = mRecyclerView.getChildAdapterPosition(nextVerticalItemView);
+                                    }
+                                    if(nextVerticalItemPos!=RecyclerView.NO_POSITION){
+                                        RecyclerView.ViewHolder nextViewholder = mRecyclerView.findViewHolderForAdapterPosition(nextVerticalItemPos);
+                                        if (nextViewholder != null) {
+                                            itemParams = (RecyclerView.LayoutParams) nextViewholder.itemView.getLayoutParams();
+                                            if(itemParams!=null){
+                                                margin = toBottom ? itemParams.bottomMargin : itemParams.topMargin;
+                                            }
+                                            itemSpace = nextViewholder.itemView.getHeight();
                                         }
-                                        itemSpace = nextViewholder.itemView.getHeight();
                                     }
+
                                 }
-
-                                offsetWidthNextItemView = Math.max(30,itemSpace/5+margin);
-
+                                offsetWidthNextItemView = Math.max(DEFAULT_MIN_SPACE, (int) (itemSpace *mShowNextItemScale + margin));
                             }
                         }
                     }
@@ -181,7 +191,8 @@ public class TVLinearLayoutManager extends LinearLayoutManager {
         return false;
     }
 
-
-
-
+    @Override
+    public View onInterceptFocusSearch(View focused, int direction) {
+        return super.onInterceptFocusSearch(focused, direction);
+    }
 }

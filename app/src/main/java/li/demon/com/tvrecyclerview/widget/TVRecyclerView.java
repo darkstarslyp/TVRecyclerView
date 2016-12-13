@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.view.View;
 
 /**
  * Created by demon on 16/12/12.
@@ -23,4 +24,9 @@ public class TVRecyclerView extends RecyclerView {
         super(context, attrs, defStyle);
     }
 
+
+    @Override
+    public View focusSearch(View focused, int direction) {
+        return super.focusSearch(focused, direction);
+    }
 }
