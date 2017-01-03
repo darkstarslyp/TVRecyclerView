@@ -1,4 +1,4 @@
-package li.demon.com.tvrecyclerview;
+package li.demon.com.tvrecyclerview.utils;
 
 import android.content.Context;
 import android.util.DisplayMetrics;
