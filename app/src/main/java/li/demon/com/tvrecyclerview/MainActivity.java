@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         layoutManager.setStartOffset(200);
 
         TVListFocusBorder listFocusBorder = new TVListFocusBorder(this,tvRecyclerView);
+        listFocusBorder.bind();
         tvRecyclerView.setLayoutManager(layoutManager);
         tvRecyclerView.setAdapter(adapter);
 
